@@ -1,0 +1,15 @@
+{
+  "run_list": [
+    "recipe[chef-server::rubygems-install]"
+  ],  
+  "default_attributes": {
+  },  
+  "override_attributes": {
+  },  
+  "chef_type": "role",
+  "description": "", 
+  "json_class": "Chef::Role",
+  "env_run_lists": {
+  },  
+  "name": "chef-server"
+}
