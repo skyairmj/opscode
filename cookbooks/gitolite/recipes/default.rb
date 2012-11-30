@@ -32,25 +32,42 @@ directory "/home/git" do
   mode "0755"
 end
 
+directory "/home/git/bin" do
+  owner "git"
+  group "git"
+  action :create
+end
+
 git "/home/git/gitolite" do
   repository node[:gitolite][:repository_url]
   reference "master"
   action :sync
   user "git"
 end
+
 execute "ssh-keygen -q -f /home/git/.ssh/id_rsa -N \"\" " do
   user "git"
   action :run
   not_if {File.exist? '/home/git/.ssh/id_rsa.pub'}
 end
+
 execute "cp /home/git/.ssh/id_rsa.pub /home/git/.ssh/authorized_keys" do
   user "git"
   not_if {File.exist? '/home/git/.ssh/authorized_keys'}
 end
-execute "./gl-easy-install -q git #{node[:gitolite][:host]} #{node[:gitolite][:admin_name]}" do
+
+execute "./install -to $HOME/bin -q git #{node[:gitolite][:host]} #{node[:gitolite][:admin_name]}" do
   user "git"
   group "git"
   environment ({'HOME' => '/home/git'})
-  cwd "/home/git/gitolite/src"
+  cwd "/home/git/gitolite/"
   not_if {File.exists?("/home/git/repositories") }
+end
+
+execute "./gitolite setup -pk $HOME/.ssh/id_rsa.pub" do
+  user "git"
+  group "git"
+  environment ({'HOME' => '/home/git'})
+  cwd "/home/git/bin/"
+end
 end
