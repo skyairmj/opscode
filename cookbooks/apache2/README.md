@@ -217,6 +217,16 @@ they're logistically unrelated to the others, being specific to the
 * `node['apache']['mod_auth_openid']['dblocation']` - filename of the sqlite3 database used for directive `AuthOpenIDDBLocation`, stored in the `cache_dir` by default.
 * `node['apache']['mod_auth_openid']['configure_flags']` - optional array of configure flags passed to the `./configure` step in the compilation of the module.
 
+mod\_ssl attributes
+-------------------
+
+* `node['apache']['mod_ssl']['cipher_suite']` - sets the
+  SSLCiphersuite value to the specified string. The default is
+  considered "sane" but you may need to change it for your local
+  security policy, e.g. if you have PCI-DSS requirements. Additional
+  commentary on the
+  [original pull request](https://github.com/opscode-cookbooks/apache2/pull/15#commitcomment-1605406).
+
 Recipes
 =======
 
@@ -487,6 +497,9 @@ an example. The following parameters are used in the template:
 * `server_aliases` - ServerAlias directive. Must be an array of aliases.
 * `docroot` - DocumentRoot directive.
 * `application_name` - Used in RewriteLog directive. Will be set to the `name` parameter.
+* `directory_index` - Allow overriding the default DirectoryIndex setting, optional
+* `directory_options` - Override Options on the docroot, for example to add parameters like Includes or Indexes, optional.
+* `allow_override` - Modify the AllowOverride directive on the docroot to support apps that need .htaccess to modify configuration or require authentication.
 
 To use the default web_app, for example:
 
