@@ -36,8 +36,8 @@ omniauth:
 
   # IMPORTANT!.
   # It allows user to login without having user account
-  allow_single_sign_on: false
-  block_auto_created_users: true
+  allow_single_sign_on: true
+  block_auto_created_users: false
 
   # Auth providers.
   providers:

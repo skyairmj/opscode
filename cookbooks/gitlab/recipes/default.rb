@@ -193,6 +193,7 @@ end
 
 # Render gitlab config file
 template "#{node['gitlab']['app_home']}/config/gitlab.yml" do
+  source 'gitlab.yml.cas'
   owner node['gitlab']['user']
   group node['gitlab']['group']
   mode 0644
