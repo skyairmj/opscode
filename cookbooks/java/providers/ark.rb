@@ -17,6 +17,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require 'chef/mixin/shell_out'
+include Chef::Mixin::ShellOut
+
 def whyrun_supported?
   true
 end
@@ -35,7 +38,7 @@ def parse_app_dir_name url
     package_name = file_name.scan(/[a-z]+/)[0]
     app_dir_name = "#{package_name}1.#{major_num}.0_#{update_num}"
   else
-    app_dir_name = file_name.split(/(.tar.gz|.zip)/)[0]
+    app_dir_name = file_name.split(/(.tgz|.tar.gz|.zip)/)[0]
     app_dir_name = app_dir_name.split("-bin")[0]
   end
   [app_dir_name, file_name]
@@ -65,7 +68,7 @@ def download_direct_from_oracle(tarball_name, new_resource)
     description = "download oracle tarball straight from the server"
     converge_by(description) do
        Chef::Log.debug "downloading oracle tarball straight from the source"
-       cmd = Chef::ShellOut.new(
+       cmd = shell_out(
                                   %Q[ curl -L --cookie "#{cookie}" #{new_resource.url} -o #{download_path} ]
                                )
        cmd.run_command
@@ -128,7 +131,7 @@ action :install do
        tmpdir = Dir.mktmpdir
        case tarball_name
        when /^.*\.bin/
-         cmd = Chef::ShellOut.new(
+         cmd = shell_out(
                                   %Q[ cd "#{tmpdir}";
                                       cp "#{Chef::Config[:file_cache_path]}/#{tarball_name}" . ;
                                       bash ./#{tarball_name} -noregister
@@ -137,14 +140,14 @@ action :install do
            Chef::Application.fatal!("Failed to extract file #{tarball_name}!")
          end
        when /^.*\.zip/
-         cmd = Chef::ShellOut.new(
+         cmd = shell_out(
                             %Q[ unzip "#{Chef::Config[:file_cache_path]}/#{tarball_name}" -d "#{tmpdir}" ]
                                   ).run_command
          unless cmd.exitstatus == 0
            Chef::Application.fatal!("Failed to extract file #{tarball_name}!")
          end
-       when /^.*\.tar.gz/
-         cmd = Chef::ShellOut.new(
+       when /^.*\.(tar.gz|tgz)/
+         cmd = shell_out(
                             %Q[ tar xvzf "#{Chef::Config[:file_cache_path]}/#{tarball_name}" -C "#{tmpdir}" ]
                                   ).run_command
          unless cmd.exitstatus == 0
@@ -152,7 +155,7 @@ action :install do
          end
        end
 
-       cmd = Chef::ShellOut.new(
+       cmd = shell_out(
                           %Q[ mv "#{tmpdir}/#{app_dir_name}" "#{app_dir}" ]
                                 ).run_command
        unless cmd.exitstatus == 0
@@ -160,6 +163,7 @@ action :install do
          end
        FileUtils.rm_r tmpdir
      end
+     new_resource.updated_by_last_action(true)
   end
 
   #set up .jinfo file for update-java-alternatives
@@ -169,19 +173,20 @@ action :install do
     description = "Add #{jinfo_file} for debian"
     converge_by(description) do
       Chef::Log.debug "Adding #{jinfo_file} for debian"
-      template "#{jinfo_file}" do
+      template jinfo_file do
         source "oracle.jinfo.erb"
         variables(
           :priority => new_resource.alternatives_priority,
           :bin_cmds => new_resource.bin_cmds,
           :name => java_name,
           :app_dir => app_home
-        ) 
+        )
         action :create
       end
     end
+    new_resource.updated_by_last_action(true)
   end
-  
+
   #link app_home to app_dir
   Chef::Log.debug "app_home is #{app_home} and app_dir is #{app_dir}"
   current_link = ::File.symlink?(app_home) ? ::File.readlink(app_home) : nil
@@ -194,7 +199,7 @@ action :install do
     end
   end
 
-  #update-alternatives     
+  #update-alternatives
   if new_resource.bin_cmds
     new_resource.bin_cmds.each do |cmd|
 
@@ -203,37 +208,37 @@ action :install do
       priority = new_resource.alternatives_priority
 
       # install the alternative if needed
-      alternative_exists = Chef::ShellOut.new("update-alternatives --display #{cmd} | grep #{alt_path}").run_command.exitstatus == 0
+      alternative_exists = shell_out("update-alternatives --display #{cmd} | grep #{alt_path}").run_command.exitstatus == 0
       unless alternative_exists
         description = "Add alternative for #{cmd}"
         converge_by(description) do
           Chef::Log.debug "Adding alternative for #{cmd}"
-          install_cmd = Chef::ShellOut.new("update-alternatives --install #{bin_path} #{cmd} #{alt_path} #{priority}").run_command
+          install_cmd = shell_out("update-alternatives --install #{bin_path} #{cmd} #{alt_path} #{priority}").run_command
           unless install_cmd.exitstatus == 0
             Chef::Application.fatal!(%Q[ set alternative failed ])
           end
         end
+        new_resource.updated_by_last_action(true)
       end
 
       # set the alternative if default
       if new_resource.default
-        alternative_is_set = Chef::ShellOut.new("update-alternatives --display #{cmd} | grep \"link currently points to #{alt_path}\"").run_command.exitstatus == 0
+        alternative_is_set = shell_out("update-alternatives --display #{cmd} | grep \"link currently points to #{alt_path}\"").run_command.exitstatus == 0
         unless alternative_is_set
           description = "Set alternative for #{cmd}"
           converge_by(description) do
             Chef::Log.debug "Setting alternative for #{cmd}"
-            set_cmd = Chef::ShellOut.new("update-alternatives --set #{cmd} #{alt_path}").run_command
+            set_cmd = shell_out("update-alternatives --set #{cmd} #{alt_path}").run_command
             unless set_cmd.exitstatus == 0
               Chef::Application.fatal!(%Q[ set alternative failed ])
             end
           end
+          new_resource.updated_by_last_action(true)
         end
       end
-      
     end
   end
 end
-
 
 action :remove do
   app_dir_name, tarball_name = parse_app_dir_name(new_resource.url)
@@ -255,5 +260,6 @@ action :remove do
        Chef::Log.info "Removing #{new_resource.name} at #{app_dir}"
        FileUtils.rm_rf app_dir
     end
+    new_resource.updated_by_last_action(true)
   end
 end
