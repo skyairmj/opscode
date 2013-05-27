@@ -1,3 +1,32 @@
+## v1.3.0:
+
+### Bug
+
+- [COOK-2376]: Python pip default action
+- [COOK-2468]: python cookbook - Chef 11 compat fixes
+- [COOK-2882]: Python source recipe fails on Ubuntu 12.10 because of unavailable libdb4.8-dev package
+- [COOK-3009]: fix build time dependencies and gcc flags for python source on newer ubuntus
+
+### New Feature
+
+- [COOK-2449]: Make the distribute download location an attribute
+- [COOK-3008]: Update python::source to install 2.7.5
+
+### Sub-task
+
+- [COOK-2866]: python::source checks existence of a directory that already exists
+
+## v1.2.2:
+
+* [COOK-2297] - more gracefully handle pip packages from VCS and
+  source archives
+
+## v1.2.0:
+
+* [COOK-1866] - /usr/bin is not a pip binary location in source
+  installs on RHEL
+* [COOK-1925] - add smartos support
+
 ## v1.1.0:
 
 * [COOK-1715] - Add user and group to python_pip
