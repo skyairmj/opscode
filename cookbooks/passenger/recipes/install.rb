@@ -9,6 +9,6 @@ end
 
 gem_package "passenger/rvm" do
   package_name 'passenger'
-  gem_binary "/usr/local/bin/rvm-gem.sh"
-  only_if "test -e /usr/local/bin/rvm-gem.sh"
+  gem_binary "/usr/local/rvm/bin/rvm all do"
+  only_if "test -e /usr/local/rvm/bin/rvm"
 end
