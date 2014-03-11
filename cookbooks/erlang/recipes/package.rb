@@ -1,3 +1,4 @@
+#
 # Cookbook Name:: erlang
 # Recipe:: default
 # Author:: Joe Williams <joe@joetify.com>
@@ -20,4 +21,27 @@
 # limitations under the License.
 #
 
-include_recipe "erlang::#{node["erlang"]["install_method"]}"
+case node['platform_family']
+when 'debian'
+  erlpkg = node['erlang']['gui_tools'] ? 'erlang-x11' : 'erlang-nox'
+  package erlpkg
+  package 'erlang-dev'
+
+when 'rhel'
+  case node['platform_version'].to_i
+  when 5
+    include_recipe 'yum-epel'
+
+    yum_repository 'EPELErlangrepo' do
+      description "Updated erlang yum repository for RedHat / Centos 5.x - #{node['kernel']['machine']}"
+      baseurl 'http://repos.fedorapeople.org/repos/peter/erlang/epel-5Server/$basearch'
+      gpgcheck false
+      action :create
+    end
+
+  else
+    include_recipe 'yum-erlang_solutions'
+  end
+
+  package 'erlang'
+end

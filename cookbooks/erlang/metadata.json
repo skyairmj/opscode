@@ -1,5 +1,6 @@
 {
   "name": "erlang",
+  "version": "1.5.0",
   "description": "Installs erlang, optionally install GUI tools.",
   "long_description": "",
   "maintainer": "Opscode, Inc.",
@@ -10,10 +11,16 @@
     "debian": ">= 0.0.0",
     "redhat": ">= 0.0.0",
     "centos": ">= 0.0.0",
-    "scientific": ">= 0.0.0"
+    "scientific": ">= 0.0.0",
+    "amazon": ">= 0.0.0",
+    "oracle": ">= 0.0.0"
   },
   "dependencies": {
-    "yum": ">= 0.5.0"
+    "apt": ">= 1.7.0",
+    "yum": "~> 3.0",
+    "yum-epel": ">= 0.0.0",
+    "yum-erlang_solutions": ">= 0.0.0",
+    "build-essential": ">= 0.0.0"
   },
   "recommendations": {
   },
@@ -30,7 +37,9 @@
   "groupings": {
   },
   "recipes": {
-    "erlang": "Installs erlang"
-  },
-  "version": "1.1.0"
+    "erlang": "Installs Erlang via native package, source, or Erlang Solutions package",
+    "erlang::package": "Installs Erlang via native package",
+    "erlang::source": "Installs Erlang via source",
+    "erlang::esl": "Installs Erlang from Erlang Solutions' package repositories"
+  }
 }
